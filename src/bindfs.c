@@ -213,6 +213,13 @@ static void signal_handler(int sig);
 
 static void atexit_func();
 
+static FILE *logpath;
+
+static void log_path(const char *path)
+{
+        fprintf(logpath, "%s\n", path);
+}
+
 static int is_mirroring_enabled()
 {
     return settings.num_mirrored_users + settings.num_mirrored_members > 0;
@@ -753,6 +760,8 @@ static int bindfs_create(const char *path, mode_t mode, struct fuse_file_info *f
 static int bindfs_open(const char *path, struct fuse_file_info *fi)
 {
     int fd;
+
+    log_path(path);
 
     path = process_path(path);
 
@@ -1459,6 +1468,12 @@ int main(int argc, char *argv[])
 
     int fuse_main_return;
 
+    /* Open log. */
+    logpath = fopen("/tmp/file-log", "w");
+    if (!logpath) {
+            perror("/tmp/file-log");
+            exit(EXIT_FAILURE);
+    }
 
     /* Initialize settings */
     memset(&od, 0, sizeof(od));
